@@ -1,31 +1,45 @@
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
-import { fetchNotes } from '@/lib/api'; // Перевірте правильність шляху до api.ts
-import NotesClient from './Notes.client';
+import type { Metadata } from 'next';
+import NotesClient from '@/app/notes/filter/[...slug]/Notes.client'; 
+type Props = {
+  params: Promise<{ slug?: string[] }>;
+};
 
-interface PageProps {
-  params: Promise<{
-    slug?: string[];
-  }>;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const filterTag = slug?.[0] || 'all';
+  const filterName = filterTag.toUpperCase();
+
+  const title = `${filterName} Notes | NoteHub`;
+  const description = `View and manage notes filtered by category: ${filterName}.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://notehub.com/notes/filter/${slug?.join('/') || ''}`,
+      images: [
+        {
+          url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+          width: 1200,
+          height: 630,
+          alt: `${filterName} Notes`,
+        },
+      ],
+    },
+  };
 }
 
-export default async function NotesFilterPage({ params }: PageProps) {
-  // Отримуємо масив slug з асинхронних параметрів
-  const resolvedParams = await params;
+// Компонент сторінки
+export default async function FilterPage({ params }: Props) {
   
-  // Якщо slug є і містить хоча б один елемент — це і є наш tag, інакше дефолтно 'all'
-  const tag = resolvedParams.slug?.[0] || 'all';
-
-  const queryClient = new QueryClient();
-
-  // Виконуємо prefetch запиту на сервері з урахуванням tag
-  await queryClient.prefetchQuery({
-    queryKey: ['notes', { page: 1, search: '', tag }],
-    queryFn: () => fetchNotes({ page: 1, search: '', tag }),
-  });
+  const { slug } = await params;
+  const tag = slug?.[0] || 'all';
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <main>
       <NotesClient tag={tag} />
-    </HydrationBoundary>
+    </main>
   );
 }

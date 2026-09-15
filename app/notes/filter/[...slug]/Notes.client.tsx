@@ -3,14 +3,14 @@
 import { useState, ChangeEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
+import Link from 'next/link'; // ✅ Додано імпорт Link
 import { fetchNotes } from '@/lib/api';
 import { Note } from '@/types/note'; 
 
 import SearchBox from '@/components/SearchBox/SearchBox';
 import Pagination from '@/components/Pagination/Pagination';
 import NoteList from '@/components/NoteList/NoteList';
-import Modal from '@/components/Modal/Modal';
-import NoteForm from '@/components/NoteForm/NoteForm';
+// ❌ Прибрали Modal та NoteForm, оскільки створення перенесено на окрему сторінку
 
 import css from './NotesClient.module.css';
 
@@ -21,11 +21,10 @@ interface NotesClientProps {
 export default function NotesClient({ tag }: NotesClientProps) {
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // ❌ Прибрали стан isModalOpen
 
   const [debouncedSearch] = useDebounce(searchQuery, 300);
 
-  
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setPage(1);
@@ -39,10 +38,8 @@ export default function NotesClient({ tag }: NotesClientProps) {
   const notes: Note[] = data?.notes || [];
   const totalPages: number = data?.totalPages || 1;
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  // ❌ Прибрали handleOpenModal та handleCloseModal
 
- 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1); 
   };
@@ -51,26 +48,24 @@ export default function NotesClient({ tag }: NotesClientProps) {
     <div className={css.container}>
       <div className={css.toolbar}>
         <SearchBox value={searchQuery} onChange={handleSearchChange} />
-        <button type="button" onClick={handleOpenModal} className={css.addButton}>
-          Create Note
-        </button>
+        
+        {/* ✅ Замість <button> з модалкою використовуємо <Link> */}
+        <Link href="/notes/action/create" className={css.addButton}>
+          Create note +
+        </Link>
       </div>
 
-     {!isLoading && !isError && <NoteList notes={notes} />}
+      {!isLoading && !isError && <NoteList notes={notes} />}
 
-{totalPages > 1 && (
-  <Pagination
-    pageCount={totalPages}
-    forcePage={page - 1}
-    onPageChange={handlePageChange}
-  />
-)}
+      {totalPages > 1 && (
+        <Pagination
+          pageCount={totalPages}
+          forcePage={page - 1}
+          onPageChange={handlePageChange}
+        />
+      )}
 
-{isModalOpen && (
-  <Modal onClose={handleCloseModal}>
-    <NoteForm onClose={handleCloseModal} />
-  </Modal>
-)}
+      {}
     </div>
   );
 }

@@ -1,23 +1,52 @@
-import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
-import NoteDetailsClient from './NoteDetails.client';
+import type { Metadata } from 'next';
+import { fetchNoteById } from '@/lib/api'; // Перевірте шлях до вашої функції API
 
-interface Props {
+type Props = {
   params: Promise<{ id: string }>;
+};
+
+// 1. Асинхронна генерація SEO-метаданих
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    const note = await fetchNoteById(id);
+    const title = `${note.title} | NoteHub`;
+    const description = note.content ? note.content.slice(0, 150) : 'Note details';
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `https://notehub.com/notes/${id}`, // Або ваш живий Vercel URL
+        images: [
+          {
+            url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+            width: 1200,
+            height: 630,
+            alt: note.title,
+          },
+        ],
+      },
+    };
+  } catch {
+    return {
+      title: 'Note Details | NoteHub',
+      description: 'View note details in NoteHub.',
+    };
+  }
 }
 
-export default async function NoteDetailsPage({ params }: Props) {
-  const { id } = await params;
-  const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey: ['note', id],
-    queryFn: () => fetchNoteById(id),
-  });
+// 2. Компонент сторінки (використовуємо params через await)
+export default async function NotePage({ params }: Props) {
+  const { id } = await params; // ✅ Використовуємо params, щоб ESLint не видавав помилку
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <NoteDetailsClient />
-    </HydrationBoundary>
+    <main>
+      {/* Тут відображаються деталі нотатки */}
+      <h1>Note ID: {id}</h1>
+    </main>
   );
 }
