@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
 import TanStackProvider from '@/components/TanStackProvider/TanStackProvider';
-
 import Header from '@/components/Header/Header';
-import Footer from '@/components/Footer/Footer'; 
+import Footer from '@/components/Footer/Footer';
 import './globals.css';
 
 const roboto = Roboto({
@@ -13,7 +12,8 @@ const roboto = Roboto({
   variable: '--font-roboto',
 });
 
-const BASE_URL = 'https://notehub-public.goit.study/api/auth'; 
+
+const BASE_URL = 'https://notehub-public.goit.study/';
 
 export const metadata: Metadata = {
   title: 'NoteHub - Your Personal Notes Manager',
@@ -41,7 +41,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={roboto.variable}>
       <body className={roboto.className}>
-        {}
         <TanStackProvider>
           <Header />
           {children}
